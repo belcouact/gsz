@@ -55,9 +55,10 @@
     <script>
         async function fetchData() {
             try {
-                const response = await fetch('/api/index');
+                const response = await fetch('/api');
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    const errorText = await response.text();
+                    throw new Error(`Network response was not ok: ${errorText}`);
                 }
                 const data = await response.json();
                 displayResults(data);
