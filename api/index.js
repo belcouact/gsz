@@ -13,7 +13,7 @@ export async function onRequest(context) {
     `).all();
 
     // Return the results with CORS headers
-    return new Response(JSON.stringify(result.results), {
+    return new Response(JSON.stringify(result.results || []), {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
