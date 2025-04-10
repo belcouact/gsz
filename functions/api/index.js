@@ -12,6 +12,11 @@ export async function onRequest(context) {
   }
 
   try {
+    // Check if DB binding exists
+    if (!context.env.DB) {
+      throw new Error('Database binding "DB" not found. Please check your Cloudflare Pages D1 database bindings.');
+    }
+
     // Access the D1 database using the environment binding
     const db = context.env.DB;
 
@@ -23,8 +28,20 @@ export async function onRequest(context) {
       LIMIT 100
     `).all();
 
+    // Check if results exist
+    if (!result || !result.results) {
+      return new Response(JSON.stringify([]), {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      });
+    }
+
     // Return the results with CORS headers
-    return new Response(JSON.stringify(result.results || []), {
+    return new Response(JSON.stringify(result.results), {
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
@@ -34,12 +51,18 @@ export async function onRequest(context) {
     });
   } catch (error) {
     console.error("Database error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    return new Response(
+      JSON.stringify({ 
+        error: error.message,
+        details: "If you're seeing a database binding error, please ensure the D1 database is properly bound in your Cloudflare Pages settings."
+      }), 
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
+    );
   }
 } 
